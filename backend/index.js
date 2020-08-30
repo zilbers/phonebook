@@ -1,7 +1,26 @@
 const express = require('express');
+const morgan = require('morgan');
 const app = express();
 
+morgan.token('mine', function (tokens, req, res) {
+  let body;
+  tokens.method(req, res) === 'POST'
+    ? (body = `| body - Name: ${req.body.name}, Number: ${req.body.number} |`)
+    : (body = '');
+  return [
+    tokens.method(req, res),
+    tokens.url(req, res),
+    tokens.status(req, res),
+    body,
+    tokens.res(req, res, 'content-length'),
+    '-',
+    tokens['response-time'](req, res),
+    'ms',
+  ].join(' ');
+});
+
 app.use(express.json());
+app.use(morgan('mine'));
 
 const generateId = () => {
   const maxId = persons.length > 0 ? Math.max(...persons.map((n) => n.id)) : 0;
