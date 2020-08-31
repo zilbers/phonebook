@@ -1,8 +1,9 @@
 const express = require('express');
 const morgan = require('morgan');
+const cors = require('cors');
 const app = express();
 
-morgan.token('mine', function (tokens, req, res) {
+morgan.token('loggerWithBody', function (tokens, req, res) {
   let body;
   tokens.method(req, res) === 'POST'
     ? (body = `| body - Name: ${req.body.name}, Number: ${req.body.number} |`)
@@ -20,7 +21,9 @@ morgan.token('mine', function (tokens, req, res) {
 });
 
 app.use(express.json());
-app.use(morgan('mine'));
+app.use(express.static('build'));
+app.use(cors());
+app.use(morgan('loggerWithBody'));
 
 const generateId = () => {
   const maxId = persons.length > 0 ? Math.max(...persons.map((n) => n.id)) : 0;
@@ -54,6 +57,10 @@ let persons = [
     id: 5,
   },
 ];
+
+app.get('/', (req, res) => {
+  res.send('<h1>Hello World!</h1>');
+});
 
 app.get('/api/persons', (req, res) => {
   res.send(persons);
@@ -108,7 +115,7 @@ app.post('/api/persons', (req, res) => {
   res.json(persons);
 });
 
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
