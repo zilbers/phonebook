@@ -1,7 +1,9 @@
+require('dotenv').config();
 const express = require('express');
 const morgan = require('morgan');
 const cors = require('cors');
 const app = express();
+const Contact = require('./models/contact');
 
 morgan.token('loggerWithBody', function (tokens, req, res) {
   let body;
@@ -30,36 +32,10 @@ const generateId = () => {
   return maxId + 1;
 };
 
-let persons = [
-  {
-    name: 'Arto Hellas',
-    number: '050-1123423',
-    id: 1,
-  },
-  {
-    name: 'Mor Food',
-    number: '054-1144423',
-    id: 2,
-  },
-  {
-    name: 'Aym An',
-    number: '052-1222123',
-    id: 3,
-  },
-  {
-    name: 'Pea Nutbutter',
-    number: '058-1177763',
-    id: 4,
-  },
-  {
-    name: 'Coco Loca',
-    number: '050-1126763',
-    id: 5,
-  },
-];
-
 app.get('/api/persons', (req, res) => {
-  res.send(persons);
+  Contact.find({}).then((contacts) => {
+    res.json(contacts);
+  });
 });
 
 app.get('/api/persons/:id', (req, res) => {
@@ -89,24 +65,16 @@ app.delete('/api/persons/:id', (req, res) => {
 
 app.post('/api/persons', (req, res) => {
   const body = req.body;
-  if (
-    !body.name ||
-    !body.number ||
-    persons.some((person) => person.name === body.name)
-  ) {
+  if (!body.name || !body.number) {
     return res.status(400).json({
       error: "Can't update PhoneBook with this data",
     });
   }
 
-  const person = {
+  const contact = new Contact({
     name: body.name,
     number: body.number,
-    date: new Date(),
-    id: generateId(),
-  };
-
-  persons = persons.concat(person);
+  });
 
   res.json(persons);
 });
