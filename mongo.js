@@ -8,6 +8,8 @@ if (process.argv.length < 3) {
 }
 
 const password = process.argv[2];
+const contactName = process.argv[3];
+const contactNumber = process.argv[4];
 
 const url = `mongodb+srv://OmriZIl:${password}@zilbers0.jgrxn.mongodb.net/phonebook-app?retryWrites=true&w=majority`;
 
@@ -15,24 +17,28 @@ mongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true });
 
 const contactSchema = new mongoose.Schema({
   name: String,
-  number: Number,
+  number: String,
 });
 
 const Contact = mongoose.model('Contact', contactSchema);
 
 const contact = new Contact({
-  name: 'Sir Mongo',
-  number: 0545055053,
+  name: contactName,
+  number: contactNumber,
 });
 
-// contact.save().then((result) => {
-//   console.log('Contact saved!');
-//   mongoose.connection.close();
-// });
-
-Contact.find({}).then((result) => {
-  result.forEach((contact) => {
-    console.log(contact);
+if (process.argv.length === 3) {
+  Contact.find({}).then((result) => {
+    result.forEach((contact) => {
+      console.log(contact);
+    });
+    mongoose.connection.close();
   });
-  mongoose.connection.close();
-});
+} else if (process.argv.length > 3) {
+  contact.save().then((result) => {
+    console.log(
+      `Added: ${contactName} \nnumber: ${contactNumber} \nto phonebook`
+    );
+    mongoose.connection.close();
+  });
+}
