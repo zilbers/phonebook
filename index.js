@@ -23,15 +23,20 @@ morgan.token('loggerWithBody', function (tokens, req, res) {
   ].join(' ');
 });
 
+const errorHandler = (error, request, response, next) => {
+  console.error(error.message);
+
+  if (error.name === 'CastError') {
+    return response.status(400).send({ error: 'malformatted id' });
+  }
+
+  next(error);
+};
+
 app.use(express.json());
 app.use(express.static('build'));
 app.use(cors());
 app.use(morgan('loggerWithBody'));
-
-const generateId = () => {
-  const maxId = persons.length > 0 ? Math.max(...persons.map((n) => n.id)) : 0;
-  return maxId + 1;
-};
 
 app.get('/api/persons', (req, res) => {
   Contact.find({}).then((contacts) => {
@@ -40,13 +45,15 @@ app.get('/api/persons', (req, res) => {
 });
 
 app.get('/api/persons/:id', (req, res) => {
-  try {
-    Contact.find({ _id: ObjectId(req.params.id) }).then((contact) => {
-      res.json(contact);
-    });
-  } catch {
-    res.status(404).end();
-  }
+  Contact.findById(req.params.id)
+    .then((contact) => {
+      if (contact) {
+        res.json(contact);
+      } else {
+        res.status(404).end();
+      }
+    })
+    .catch((error) => next(error));
 });
 
 app.get('/api/info', (req, res) => {
@@ -59,9 +66,11 @@ app.get('/api/info', (req, res) => {
 });
 
 app.delete('/api/persons/:id', (req, res) => {
-  Contact.remove({ _id: ObjectId(req.params.id) }).then((contacts) => {
-    res.status(204).end();
-  });
+  Contact.findByIdAndRemove(req.params.id)
+    .then((contacts) => {
+      res.status(204).end();
+    })
+    .catch((error) => next(error));
 });
 
 app.post('/api/persons', (req, res) => {
@@ -79,6 +88,8 @@ app.post('/api/persons', (req, res) => {
   });
   contact.save(contact).then((contacts) => res.json(contacts));
 });
+
+app.use(errorHandler);
 
 const PORT = process.env.PORT;
 app.listen(PORT, () => {

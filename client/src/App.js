@@ -1,5 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import {
+  getAll,
+  getById,
+  deleteById,
+  update,
+  create,
+} from './services/contact';
 
 function App() {
   const [book, setBook] = useState([]);
@@ -7,7 +13,7 @@ function App() {
   const [number, setNumber] = useState();
 
   const fetch = async () => {
-    const { data } = await axios.get('/api/persons');
+    const { data } = await getAll();
     setBook(data);
   };
 
@@ -16,12 +22,12 @@ function App() {
   }, []);
 
   const handleDelete = (e) => {
-    axios.delete(`/api/persons/${e.target.id}`);
+    deleteById(e.target.id);
     fetch();
   };
 
   const handleSubmit = async () => {
-    await axios.post('/api/persons', {
+    await create({
       name,
       number,
     });
@@ -32,10 +38,10 @@ function App() {
     <div className='App'>
       <h1>Phone Book</h1>
       <ul>
-        {book.map((item) => (
-          <li>
-            {item.name} {item.number}{' '}
-            <button id={item.id} onClick={handleDelete}>
+        {book.map((contact) => (
+          <li key={contact.id}>
+            {contact.name} {contact.number}{' '}
+            <button id={contact.id} onClick={handleDelete}>
               delete
             </button>
           </li>
