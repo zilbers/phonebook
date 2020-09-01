@@ -1,4 +1,5 @@
 require('dotenv').config();
+const ObjectId = require('mongodb').ObjectId;
 const express = require('express');
 const morgan = require('morgan');
 const cors = require('cors');
@@ -39,32 +40,33 @@ app.get('/api/persons', (req, res) => {
 });
 
 app.get('/api/persons/:id', (req, res) => {
-  const id = Number(req.params.id);
-  const person = persons.find((personFromList) => personFromList.id === id);
-
-  if (person) {
-    res.json(person);
-  } else {
+  try {
+    Contact.find({ _id: ObjectId(req.params.id) }).then((contact) => {
+      res.json(contact);
+    });
+  } catch {
     res.status(404).end();
   }
 });
 
 app.get('/api/info', (req, res) => {
-  const info = `PhoneBook has info for ${persons.length} people
-
-${new Date()}`;
-  res.send(info);
+  Contact.find({}).then((contacts) => {
+    const info = `PhoneBook has info for ${
+      contacts.length
+    } people\n${new Date()}`;
+    res.send(info);
+  });
 });
 
 app.delete('/api/persons/:id', (req, res) => {
-  const id = Number(req.params.id);
-  persons = persons.filter((person) => person.id !== id);
-
-  res.status(204).end();
+  Contact.remove({ _id: ObjectId(req.params.id) }).then((contacts) => {
+    res.status(204).end();
+  });
 });
 
 app.post('/api/persons', (req, res) => {
   const body = req.body;
+
   if (!body.name || !body.number) {
     return res.status(400).json({
       error: "Can't update PhoneBook with this data",
@@ -75,11 +77,10 @@ app.post('/api/persons', (req, res) => {
     name: body.name,
     number: body.number,
   });
-
-  res.json(persons);
+  contact.save(contact).then((contacts) => res.json(contacts));
 });
 
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
