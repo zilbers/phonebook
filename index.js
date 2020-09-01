@@ -89,6 +89,21 @@ app.post('/api/persons', (req, res) => {
   contact.save(contact).then((contacts) => res.json(contacts));
 });
 
+app.put('/api/persons/:id', (req, res) => {
+  const body = req.body;
+
+  const contact = {
+    name: body.name,
+    number: body.number,
+  };
+
+  Contact.findByIdAndUpdate(req.params.id, contact, { new: true })
+    .then((updatedContact) => {
+      res.json(updatedContact);
+    })
+    .catch((error) => next(error));
+});
+
 app.use(errorHandler);
 
 const PORT = process.env.PORT;

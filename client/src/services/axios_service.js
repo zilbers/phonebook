@@ -14,7 +14,7 @@ function update(id, newObject) {
 }
 
 function deleteById(id) {
-  return axios.delete(`/api/persons/${id}`);
+  return axios.delete(`${baseUrl}/${id}`);
 }
 
 export { getAll, create, update, deleteById };
